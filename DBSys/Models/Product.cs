@@ -25,7 +25,5 @@ public partial class Product
 
     public DateTime? CreatedAt { get; set; }
 
-    public virtual ICollection<Sale> Sales { get; set; } = new List<Sale>();
-
     public virtual Vendor Vendor { get; set; } = null!;
 }

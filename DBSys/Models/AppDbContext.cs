@@ -23,6 +23,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Payment> Payments { get; set; }
 
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<ProductsHistory> ProductsHistories { get; set; }
@@ -36,7 +37,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Vendor> Vendors { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+#warning To protect potentially sensitive information in your connection string, move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=MNStateFair;Trusted_Connection=True;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -309,10 +310,6 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Customer).WithMany(p => p.Sales)
                 .HasForeignKey(d => d.CustomerId)
                 .HasConstraintName("FK__SALES__customer___440B1D61");
-
-            entity.HasOne(d => d.Product).WithMany(p => p.Sales)
-                .HasForeignKey(d => d.ProductId)
-                .HasConstraintName("FK__SALES__product_i__44FF419A");
 
             entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Sales)
                 .HasForeignKey(d => d.Status)

@@ -1,0 +1,32 @@
+﻿@page
+@model DBSys.Pages.TablesModel
+@{
+    ViewData["Title"] = "SF Tables";
+    var properties = typeof(DBSys.Models.Product).GetProperties();
+}
+
+<div clss="">
+    <h1 class="display-4">State Fair Sales</h1>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            @foreach (var prop in properties)
+            {
+                <th>@prop.Name</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Products)
+        {
+            <tr>
+                @foreach (var prop in properties)
+                {
+                <td>@prop.GetValue(item)</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
