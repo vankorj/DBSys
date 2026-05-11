@@ -9,23 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 // ======================
 // DATABASES
 // ======================
-// OG application database (your existing DB)
 builder.Services.AddDbContext<AppDbContext>(options =>
 	options.UseSqlServer(
 		builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//
-// Identity database (NEW separate DB)
-//
 builder.Services.AddDbContext<AuthDbContext>(options =>
 	options.UseSqlServer(
 		builder.Configuration.GetConnectionString("IdentityConnection")));
 
-//
-// ======================
-// IDENTITY CONFIG
-// ======================
-// Uses AuthDbContext (IMPORTANT FIX)
 builder.Services
 	.AddIdentity<IdentityUser, IdentityRole>(options =>
 	{
@@ -45,38 +36,21 @@ builder.Services.ConfigureApplicationCookie(options =>
 	options.AccessDeniedPath = "/Identity/Account/Login";
 });
 
-//
-// ======================
-// CUSTOM SERVICES
-// ======================
 builder.Services.AddScoped<FakePaymentProcessor>();
 
 builder.Services.AddScoped<AnalyticsService>();
 
-//
-// ======================
-// RAZOR PAGES
-// ======================
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-//
-// ======================
-// SEED DATA (ROLES / ADMIN)
-// ======================
 using (var scope = app.Services.CreateScope())
 {
 	var services = scope.ServiceProvider;
 
-	// MUST target Identity DB via AuthDbContext internally
 	await SeedData.Initialize(services);
 }
 
-//
-// ======================
-// PIPELINE
-// ======================
 if (!app.Environment.IsDevelopment())
 {
 	app.UseExceptionHandler("/Error");
@@ -107,15 +81,13 @@ app.MapGet("/test-sale", async (AppDbContext db, FakePaymentProcessor fp) =>
 		PurchasedAt = DateTime.UtcNow
 	};
 
-	// ⭐ Call the processor to get the real status
 	var (status, authCode) = fp.Process(sale.TotalAmount.Value);
 
-	sale.Status = status;       // "Approved" or "Declined"
+	sale.Status = status;
 
 	db.Sales.Add(sale);
 	await db.SaveChangesAsync();
 
-	// ⭐ Now decrement inventory
 	await fp.ProcessPaymentAsync(sale, db);
 
 	return $"Sale processed. Status: {status}";

@@ -1,4 +1,5 @@
 ﻿using DBSys.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace DBSys.Pages
 {
+	[Authorize]
 	public class GraphsModel : PageModel
 	{
 		private readonly AppDbContext _context;
@@ -16,7 +18,6 @@ namespace DBSys.Pages
 			_context = context;
 		}
 
-		// Chart Data
 		public List<string> ProductNames { get; set; } = new();
 		public List<int> InventoryQuantities { get; set; } = new();
 
@@ -28,7 +29,6 @@ namespace DBSys.Pages
 
 		public async Task OnGetAsync()
 		{
-			// ⭐ INVENTORY CHART (DimProduct)
 			var inventory = await _context.DimProduct
 				.Select(p => new
 				{
@@ -41,7 +41,6 @@ namespace DBSys.Pages
 			InventoryQuantities = inventory.Select(i => i.InventoryQty).ToList();
 
 
-			// ⭐ VENDOR REVENUE PIE (FactSales + DimVendor)
 			var vendorData = await _context.FactSales
 				.Join(_context.DimVendor,
 					f => f.VendorId,
@@ -58,7 +57,6 @@ namespace DBSys.Pages
 			VendorNames = vendorData.Select(v => v.Vendor).ToList();
 			VendorRevenue = vendorData.Select(v => v.Revenue).ToList();
 
-			// ⭐ SALES REVENUE TREND (FactSales + DimTime)
 			var revenueTrend = await _context.FactSales
 				.Join(_context.DimTime,
 					f => f.TimeId,
@@ -71,7 +69,7 @@ namespace DBSys.Pages
 					Revenue = g.Sum(x => x.TotalAmount)
 				})
 				.OrderBy(x => x.Date)
-				.ToListAsync();   // ⭐ IMPORTANT
+				.ToListAsync();
 
 			RevenueDates = revenueTrend
 				.Select(r => r.Date.ToString("yyyy-MM-dd"))
