@@ -240,6 +240,21 @@ namespace DBSys.Models
 
 				entity.Property(e => e.Status).HasColumnName("status");
 			});
+
+			// ======================
+			// ANALYTICS DTOs (Keyless)
+			// ======================
+			modelBuilder.Entity<ProductDemandDto>()
+				.HasNoKey()
+				.ToView(null);
+
+			modelBuilder.Entity<VendorPerformanceDto>()
+				.HasNoKey()
+				.ToView(null);
+
+			modelBuilder.Entity<LowInventoryDto>()
+				.HasNoKey()
+				.ToView(null);
 		}
 	}
 }

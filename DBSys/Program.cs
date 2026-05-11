@@ -51,6 +51,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 // ======================
 builder.Services.AddScoped<FakePaymentProcessor>();
 
+builder.Services.AddScoped<AnalyticsService>();
+
 //
 // ======================
 // RAZOR PAGES

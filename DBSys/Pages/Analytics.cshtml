@@ -1,0 +1,41 @@
+﻿@page
+@model DBSys.Pages.AnalyticsModel
+
+@{
+    ViewData["Title"] = "Analytics";
+}
+
+<h1>AI Analytics Dashboard (OLAP Layer)</h1>
+
+<h3>Product Demand Trend</h3>
+<table class="table">
+    @foreach (var item in Model.ProductDemand)
+    {
+        <tr>
+            <td>@item.Product</td>
+            <td>@item.TotalOrders</td>
+        </tr>
+    }
+</table>
+
+<h3>Vendor Performance</h3>
+<table class="table">
+    @foreach (var item in Model.VendorPerformance)
+    {
+        <tr>
+            <td>@item.Vendor</td>
+            <td>@item.TotalOrders</td>
+        </tr>
+    }
+</table>
+
+<h3>Low Inventory Risk</h3>
+<table class="table">
+    @foreach (var item in Model.LowInventory)
+    {
+        <tr>
+            <td>@item.Product</td>
+            <td>@item.QuantityOnHand</td>
+        </tr>
+    }
+</table>
