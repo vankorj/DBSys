@@ -1,4 +1,4 @@
-using DBSys.Models;
+﻿using DBSys.Models;
 using DBSys.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -90,6 +90,36 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapGet("/test-sale", async (AppDbContext db, FakePaymentProcessor fp) =>
+{
+	var sale = new Sale
+	{
+		CustomerId = 1,
+		ProductId = 1,
+		VendorId = 1,
+		Quantity = 2,
+		UnitPriceAtSale = 10,
+		SubtotalAmount = 20,
+		TaxAmount = 1.5m,
+		TotalAmount = 21.5m,
+		Currency = "USD",
+		PurchasedAt = DateTime.UtcNow
+	};
+
+	// ⭐ Call the processor to get the real status
+	var (status, authCode) = fp.Process(sale.TotalAmount.Value);
+
+	sale.Status = status;       // "Approved" or "Declined"
+
+	db.Sales.Add(sale);
+	await db.SaveChangesAsync();
+
+	// ⭐ Now decrement inventory
+	await fp.ProcessPaymentAsync(sale, db);
+
+	return $"Sale processed. Status: {status}";
+});
 
 app.MapRazorPages();
 

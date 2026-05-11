@@ -1,11 +1,12 @@
-using DBSys.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using DBSys.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DBSys.Pages
 {
-	[Authorize]
 	public class GraphsModel : PageModel
 	{
 		private readonly AppDbContext _context;
@@ -15,66 +16,71 @@ namespace DBSys.Pages
 			_context = context;
 		}
 
-		// Inventory Chart
+		// Chart Data
 		public List<string> ProductNames { get; set; } = new();
 		public List<int> InventoryQuantities { get; set; } = new();
 
-		// Revenue Trend Chart
-		public List<string> RevenueDates { get; set; } = new();
-		public List<decimal> RevenueAmounts { get; set; } = new();
-
-		// Vendor Revenue Chart
 		public List<string> VendorNames { get; set; } = new();
 		public List<decimal> VendorRevenue { get; set; } = new();
 
-		public void OnGet()
+		public List<string> RevenueDates { get; set; } = new();
+		public List<decimal> RevenueAmounts { get; set; } = new();
+
+		public async Task OnGetAsync()
 		{
-			// INVENTORY BAR CHART
-			var products = _context.Products.ToList();
+			// ⭐ INVENTORY CHART (DimProduct)
+			var inventory = await _context.DimProduct
+				.Select(p => new
+				{
+					p.Name,
+					p.InventoryQty
+				})
+				.ToListAsync();
 
-			ProductNames = products.Select(p => p.Name).ToList();
-			InventoryQuantities = products
-				.Select(p => p.InventoryQty ?? 0)
-				.ToList();
+			ProductNames = inventory.Select(i => i.Name).ToList();
+			InventoryQuantities = inventory.Select(i => i.InventoryQty).ToList();
 
-			// SALES REVENUE LINE GRAPH
-			var revenueData = _context.Sales
-				.Where(s => s.PurchasedAt.HasValue)
-				.GroupBy(s => s.PurchasedAt.Value.Date)
+
+			// ⭐ VENDOR REVENUE PIE (FactSales + DimVendor)
+			var vendorData = await _context.FactSales
+				.Join(_context.DimVendor,
+					f => f.VendorId,
+					v => v.VendorId,
+					(f, v) => new { v.Name, f.TotalAmount })
+				.GroupBy(x => x.Name)
+				.Select(g => new
+				{
+					Vendor = g.Key,
+					Revenue = g.Sum(x => x.TotalAmount)
+				})
+				.ToListAsync();
+
+			VendorNames = vendorData.Select(v => v.Vendor).ToList();
+			VendorRevenue = vendorData.Select(v => v.Revenue).ToList();
+
+			// ⭐ SALES REVENUE TREND (FactSales + DimTime)
+			var revenueTrend = await _context.FactSales
+				.Join(_context.DimTime,
+					f => f.TimeId,
+					t => t.TimeId,
+					(f, t) => new { t.Date, f.TotalAmount })
+				.GroupBy(x => x.Date)
 				.Select(g => new
 				{
 					Date = g.Key,
 					Revenue = g.Sum(x => x.TotalAmount)
 				})
 				.OrderBy(x => x.Date)
+				.ToListAsync();   // ⭐ IMPORTANT
+
+			RevenueDates = revenueTrend
+				.Select(r => r.Date.ToString("yyyy-MM-dd"))
 				.ToList();
 
-			RevenueDates = revenueData
-				.Select(x => x.Date.ToString("MM/dd/yyyy"))
+			RevenueAmounts = revenueTrend
+				.Select(r => r.Revenue)
 				.ToList();
 
-			RevenueAmounts = revenueData
-				.Select(x => x.Revenue ?? 0m)
-				.ToList();
-
-			// REVENUE BY VENDOR PIE CHART
-			var vendorData = _context.Sales
-				.Include(s => s.Vendor)
-				.GroupBy(s => s.Vendor.Name)
-				.Select(g => new
-				{
-					Vendor = g.Key,
-					Revenue = g.Sum(x => x.TotalAmount)
-				})
-				.ToList();
-
-			VendorNames = vendorData
-				.Select(x => x.Vendor)
-				.ToList();
-
-			VendorRevenue = vendorData
-				.Select(x => x.Revenue ?? 0m)
-				.ToList();
 		}
 	}
 }

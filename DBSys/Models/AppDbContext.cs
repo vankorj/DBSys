@@ -31,6 +31,14 @@ namespace DBSys.Models
 
 		public DbSet<Vendor> Vendors { get; set; }
 
+		public DbSet<DimProduct> DimProduct { get; set; }
+		public DbSet<DimVendor> DimVendor { get; set; }
+		public DbSet<DimTime> DimTime { get; set; }
+		public DbSet<FactSales> FactSales
+		{
+			get; set;
+		}
+
 		// ======================
 		// MODEL CONFIGURATION
 		// ======================
@@ -240,6 +248,34 @@ namespace DBSys.Models
 
 				entity.Property(e => e.Status).HasColumnName("status");
 			});
+
+			// ======================
+			// OLAP STAR SCHEMA
+			// ======================
+			modelBuilder.Entity<DimProduct>(entity =>
+			{
+				entity.HasKey(e => e.ProductId);
+				entity.ToTable("DimProduct");
+			});
+
+			modelBuilder.Entity<DimVendor>(entity =>
+			{
+				entity.HasKey(e => e.VendorId);
+				entity.ToTable("DimVendor");
+			});
+
+			modelBuilder.Entity<DimTime>(entity =>
+			{
+				entity.HasKey(e => e.TimeId);
+				entity.ToTable("DimTime");
+			});
+
+			modelBuilder.Entity<FactSales>(entity =>
+			{
+				entity.HasKey(e => e.FactSalesId);
+				entity.ToTable("FactSales");
+			});
+
 
 			// ======================
 			// ANALYTICS DTOs (Keyless)

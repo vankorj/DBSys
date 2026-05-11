@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DBSys.Models;
+using System;
 
 namespace DBSys.Services;
 
@@ -22,4 +23,22 @@ public class FakePaymentProcessor
 
 		return ("Declined", null);
 	}
+
+	public async Task<bool> ProcessPaymentAsync(Sale sale, AppDbContext db)
+	{
+		// Fake approval
+		await Task.Delay(500);
+
+		// Decrement inventory
+		var product = await db.Products.FindAsync(sale.ProductId);
+		if (product != null)
+		{
+			product.InventoryQty -= sale.Quantity;
+		}
+
+		await db.SaveChangesAsync();
+
+		return true;
+	}
+
 }

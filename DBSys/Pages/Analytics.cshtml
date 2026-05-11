@@ -8,34 +8,58 @@
 <h1>AI Analytics Dashboard (OLAP Layer)</h1>
 
 <h3>Product Demand Trend</h3>
-<table class="table">
-    @foreach (var item in Model.ProductDemand)
-    {
+<table class="table table-striped">
+    <thead>
         <tr>
-            <td>@item.Product</td>
-            <td>@item.TotalOrders</td>
+            <th>Product</th>
+            <th>Total Orders</th>
         </tr>
-    }
+    </thead>
+    <tbody>
+        @foreach (var item in Model.ProductDemand)
+        {
+            <tr>
+                <td>@item.Product</td>
+                <td>@item.TotalOrders</td>
+            </tr>
+        }
+    </tbody>
 </table>
 
 <h3>Vendor Performance</h3>
-<table class="table">
-    @foreach (var item in Model.VendorPerformance)
-    {
+<table class="table table-striped">
+    <thead>
         <tr>
-            <td>@item.Vendor</td>
-            <td>@item.TotalOrders</td>
+            <th>Vendor</th>
+            <th>Total Orders</th>
         </tr>
-    }
+    </thead>
+    <tbody>
+        @foreach (var item in Model.VendorPerformance)
+        {
+            <tr>
+                <td>@item.Vendor</td>
+                <td>@item.TotalOrders</td>
+            </tr>
+        }
+    </tbody>
 </table>
 
 <h3>Low Inventory Risk</h3>
-<table class="table">
-    @foreach (var item in Model.LowInventory)
-    {
+<table class="table table-striped">
+    <thead>
         <tr>
-            <td>@item.Product</td>
-            <td>@item.QuantityOnHand</td>
+            <th>Product</th>
+            <th>Quantity On Hand</th>
         </tr>
-    }
+    </thead>
+    <tbody>
+        @foreach (var item in Model.LowInventory)
+        {
+            <tr>
+                <td>@item.Product</td>
+                <td>@item.QuantityOnHand</td>
+            </tr>
+        }
+    </tbody>
 </table>
