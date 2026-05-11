@@ -1,0 +1,73 @@
+﻿@model IEnumerable<object>
+
+@{
+    var first = Model.FirstOrDefault();
+    var props = first?.GetType().GetProperties();
+}
+
+@if (first != null)
+{
+    <table class="table table-sm table-striped table-bordered">
+        <thead>
+            <tr>
+                @foreach (var prop in props)
+                {
+                    <th>@prop.Name</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    @foreach (var prop in props)
+                    {
+                        var value = prop.GetValue(item);
+
+                        if (value == null)
+                        {
+                            <td></td>
+                            continue;
+                        }
+
+                        var type = value.GetType();
+
+                        if (type.IsPrimitive
+                        || type == typeof(string)
+                        || type == typeof(decimal)
+                        || type == typeof(DateTime))
+                        {
+                            <td>@value</td>
+                        }
+                        else if (value is System.Collections.IEnumerable enumerable
+                        && !(value is string))
+                        {
+                            int count = 0;
+                            foreach (var _ in enumerable) count++;
+
+                            <td>@count item(s)</td>
+                        }
+                        else
+                        {
+                            var displayProp =
+                            type.GetProperty("Name") ??
+                            type.GetProperty("Title") ??
+                            type.GetProperty("Phone") ??
+                            type.GetProperty("Sku") ??
+                            type.GetProperty("Id") ??
+                            type.GetProperty(type.Name + "Id");
+
+                            var displayValue = displayProp?.GetValue(value);
+
+                            <td>@(displayValue ?? value.ToString())</td>
+                        }
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No data</p>
+}

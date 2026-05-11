@@ -1,0 +1,56 @@
+﻿@page
+@model DBSys.Pages.HistoryModel
+
+@{
+    ViewData["Title"] = "History";
+}
+
+<h1 class="display-4 mb-4">Audit History</h1>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- CUSTOMER HISTORY -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    Customer History
+                </div>
+
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable"
+                             model="Model.CustomerHistory.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- PRODUCT HISTORY -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    Product History
+                </div>
+
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable"
+                             model="Model.ProductHistory.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- SALES HISTORY -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    Sales History
+                </div>
+
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable"
+                             model="Model.SalesHistory.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,104 @@
+﻿@page
+@model DBSys.Pages.GraphsModel
+
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Graphs";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<h1 class="display-4 mb-4">Analytics Dashboard</h1>
+
+<div class="container-fluid">
+
+    <div class="row">
+
+        <!-- INVENTORY CHART -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    Inventory Levels
+                </div>
+
+                <div class="card-body">
+                    <canvas id="inventoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- VENDOR REVENUE PIE -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    Revenue By Vendor
+                </div>
+
+                <div class="card-body">
+                    <canvas id="vendorChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SALES REVENUE LINE -->
+    <div class="row">
+
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header text-white">
+                    Sales Revenue Trend
+                </div>
+
+                <div class="card-body">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    // INVENTORY BAR CHART
+    new Chart(document.getElementById('inventoryChart'), {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(JsonSerializer.Serialize(Model.ProductNames)),
+            datasets: [{
+                label: 'Inventory Quantity',
+                data: @Html.Raw(JsonSerializer.Serialize(Model.InventoryQuantities))
+            }]
+        }
+    });
+
+    // SALES REVENUE LINE GRAPH
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: @Html.Raw(JsonSerializer.Serialize(Model.RevenueDates)),
+            datasets: [{
+                label: 'Revenue',
+                data: @Html.Raw(JsonSerializer.Serialize(Model.RevenueAmounts)),
+                tension: 0.3
+            }]
+        }
+    });
+
+    // REVENUE BY VENDOR PIE CHART
+    new Chart(document.getElementById('vendorChart'), {
+        type: 'pie',
+        data: {
+            labels: @Html.Raw(JsonSerializer.Serialize(Model.VendorNames)),
+            datasets: [{
+                label: 'Vendor Revenue',
+                data: @Html.Raw(JsonSerializer.Serialize(Model.VendorRevenue))
+            }]
+        }
+    });
+
+</script>

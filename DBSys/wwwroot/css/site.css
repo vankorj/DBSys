@@ -18,9 +18,23 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: #fff9f1;
 }
 
 .bg-dark-blue {
-    background-color: #0b1f3a; /* deep navy */
+    background-color: #0b1f3a;
+}
+
+.table-container {
+    height: 300px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.card-body {
+}
+
+.card-header {
+    background-color: #0b1f3a;
 }

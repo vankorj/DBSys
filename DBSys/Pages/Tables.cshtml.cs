@@ -1,11 +1,11 @@
-using DBSys.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using DBSys.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace DBSys.Pages
 {
-	public class TablesModel : PageModel
+	[Authorize]
+	public class TablesModel : Microsoft.AspNetCore.Mvc.RazorPages.PageModel
 	{
 		private readonly AppDbContext _context;
 
@@ -14,11 +14,19 @@ namespace DBSys.Pages
 			_context = context;
 		}
 
-		public List<Product> Products { get; set; }
+		public List<Product> Products { get; set; } = new();
+		public List<Vendor> Vendors { get; set; } = new();
+		public List<Customer> Customers { get; set; } = new();
+		public List<Payment> Payments { get; set; } = new();
+		public List<Sale> Sales { get; set; } = new();
 
-		public async Task OnGetAsync()
+		public void OnGet()
 		{
-			Products = await _context.Products.ToListAsync();
+			Products = _context.Products.ToList();
+			Vendors = _context.Vendors.ToList();
+			Customers = _context.Customers.ToList();
+			Payments = _context.Payments.ToList();
+			Sales = _context.Sales.ToList();
 		}
 	}
 }

@@ -26,10 +26,14 @@
                             <a class="nav-link text-white" asp-area="" asp-page="/Tables">Data Tables</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" asp-area="" asp-page="/History">Data History</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" asp-area="" asp-page="/Graphs">Graphs</a>
                         </li>
                     </ul>
                 </div>
+                <partial name="_LoginPartial" />
             </div>
         </nav>
     </header>
@@ -39,9 +43,12 @@
         </main>
     </div>
 
-    <footer class="footer text-white bg-dark-blue border-top">
-        <div class="container">
-            &copy; 2026 - DBSys - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <footer class="footer text-white bg-dark-blue border-top py-1">
+        <div class="container text-center small">
+            &copy; 2026 - DBSys -
+            <a asp-area="" asp-page="/Privacy" class="text-white">
+                Privacy
+            </a>
         </div>
     </footer>
 

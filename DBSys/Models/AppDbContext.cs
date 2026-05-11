@@ -2,378 +2,244 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace DBSys.Models;
-
-public partial class AppDbContext : DbContext
+namespace DBSys.Models
 {
-    public AppDbContext()
-    {
-    }
+	public class AppDbContext : DbContext
+	{
+		public AppDbContext(DbContextOptions<AppDbContext> options)
+			: base(options)
+		{
+		}
 
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
+		// ======================
+		// DBSYS TABLES
+		// ======================
 
-    public virtual DbSet<Customer> Customers { get; set; }
+		public DbSet<Customer> Customers { get; set; }
+		public DbSet<CustomersHistory> CustomersHistories { get; set; }
+		public DbSet<OrderStatusRef> OrderStatusRefs { get; set; }
 
-    public virtual DbSet<CustomersHistory> CustomersHistories { get; set; }
+		public DbSet<Payment> Payments { get; set; }
 
-    public virtual DbSet<OrderStatusRef> OrderStatusRefs { get; set; }
+		public DbSet<Product> Products { get; set; }
+		public DbSet<ProductsHistory> ProductsHistories { get; set; }
 
-    public virtual DbSet<Payment> Payments { get; set; }
+		public DbSet<RevenueReport> RevenueReports { get; set; }
 
+		public DbSet<Sale> Sales { get; set; }
+		public DbSet<SalesHistory> SalesHistories { get; set; }
 
-    public virtual DbSet<Product> Products { get; set; }
+		public DbSet<Vendor> Vendors { get; set; }
 
-    public virtual DbSet<ProductsHistory> ProductsHistories { get; set; }
+		// ======================
+		// MODEL CONFIGURATION
+		// ======================
 
-    public virtual DbSet<RevenueReport> RevenueReports { get; set; }
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			base.OnModelCreating(modelBuilder);
 
-    public virtual DbSet<Sale> Sales { get; set; }
+			// ======================
+			// CUSTOMER
+			// ======================
+			modelBuilder.Entity<Customer>(entity =>
+			{
+				entity.HasKey(e => e.CustomerId);
+				entity.ToTable("CUSTOMERS", tb => tb.HasTrigger("trg_customers_history"));
 
-    public virtual DbSet<SalesHistory> SalesHistories { get; set; }
+				entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+				entity.Property(e => e.FirstName).HasColumnName("first_name").HasMaxLength(100).IsUnicode(false);
+				entity.Property(e => e.LastName).HasColumnName("last_name").HasMaxLength(100).IsUnicode(false);
+				entity.Property(e => e.Email).HasColumnName("email").HasMaxLength(200).IsUnicode(false);
+				entity.Property(e => e.Phone).HasColumnName("phone");
+				entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			});
 
-    public virtual DbSet<Vendor> Vendors { get; set; }
+			// ======================
+			// PRODUCT
+			// ======================
+			modelBuilder.Entity<Product>(entity =>
+			{
+				entity.HasKey(e => e.ProductId);
+				entity.ToTable("PRODUCTS", tb => tb.HasTrigger("trg_products_history"));
 
-	public DbSet<PaymentProcessor> PaymentProcessors { get; set; }
+				entity.Property(e => e.ProductId).HasColumnName("product_id");
+				entity.Property(e => e.VendorId).HasColumnName("vendor_id");
+				entity.Property(e => e.Sku).HasColumnName("sku").HasMaxLength(100).IsUnicode(false);
+				entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsUnicode(false);
+				entity.Property(e => e.Description).HasColumnName("description").HasMaxLength(500).IsUnicode(false);
+				entity.Property(e => e.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.Currency).HasColumnName("currency").HasMaxLength(10).IsUnicode(false);
+				entity.Property(e => e.InventoryQty).HasColumnName("inventory_qty");
+				entity.Property(e => e.IsActive).HasColumnName("is_active");
+				entity.Property(e => e.CreatedAt).HasColumnName("created_at");
 
-	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=MNStateFair;Trusted_Connection=True;TrustServerCertificate=True;");
+				entity.HasOne(p => p.Vendor)
+					  .WithMany(v => v.Products)
+					  .HasForeignKey(p => p.VendorId)
+					  .OnDelete(DeleteBehavior.Restrict);
+			});
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Customer>(entity =>
-        {
-            entity.HasKey(e => e.CustomerId).HasName("PK__CUSTOMER__CD65CB85641742F6");
+			// ======================
+			// VENDOR
+			// ======================
+			modelBuilder.Entity<Vendor>(entity =>
+			{
+				entity.HasKey(e => e.VendorId);
+				entity.ToTable("VENDORS");
 
-            entity.ToTable("CUSTOMERS", tb => tb.HasTrigger("trg_customers_history"));
+				entity.Property(e => e.VendorId).HasColumnName("vendor_id");
+				entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(200).IsUnicode(false);
+				entity.Property(e => e.ContactEmail).HasColumnName("contact_email");
+				entity.Property(e => e.PayoutAccountRef).HasColumnName("payout_account_ref");
+				entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+			});
 
-            entity.HasIndex(e => e.Email, "UQ__CUSTOMER__AB6E6164E0B9494A").IsUnique();
+			// ======================
+			// SALE
+			// ======================
+			modelBuilder.Entity<Sale>(entity =>
+			{
+				entity.HasKey(e => e.SaleId);
+				entity.ToTable("SALES", tb => tb.HasTrigger("trg_sales_history"));
 
-            entity.Property(e => e.CustomerId).HasColumnName("customer_id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Email)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("email");
-            entity.Property(e => e.FirstName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("first_name");
-            entity.Property(e => e.LastName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("last_name");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("phone");
-        });
+				entity.Property(e => e.SaleId).HasColumnName("sale_id");
+				entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+				entity.Property(e => e.ProductId).HasColumnName("product_id");
+				entity.Property(e => e.VendorId).HasColumnName("vendor_id");
+				entity.Property(e => e.Quantity).HasColumnName("quantity");
+				entity.Property(e => e.UnitPriceAtSale).HasColumnName("unit_price_at_sale").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.SubtotalAmount).HasColumnName("subtotal_amount").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.TaxAmount).HasColumnName("tax_amount").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.Currency).HasColumnName("currency");
+				entity.Property(e => e.Status).HasColumnName("status");
+				entity.Property(e => e.PurchasedAt).HasColumnName("purchased_at");
 
-        modelBuilder.Entity<CustomersHistory>(entity =>
-        {
-            entity.HasKey(e => e.HistoryId).HasName("PK__CUSTOMER__096AA2E9F6957455");
+				entity.HasOne(s => s.Customer)
+					  .WithMany(c => c.Sales)
+					  .HasForeignKey(s => s.CustomerId);
 
-            entity.ToTable("CUSTOMERS_HISTORY");
+				entity.HasOne(s => s.Product)
+					  .WithMany()
+					  .HasForeignKey(s => s.ProductId);
 
-            entity.Property(e => e.HistoryId).HasColumnName("history_id");
-            entity.Property(e => e.AuditAction)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("audit_action");
-            entity.Property(e => e.AuditDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("audit_date");
-            entity.Property(e => e.CustomerId).HasColumnName("customer_id");
-            entity.Property(e => e.Email)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("email");
-            entity.Property(e => e.FirstName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("first_name");
-            entity.Property(e => e.LastName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("last_name");
-            entity.Property(e => e.Phone)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("phone");
-        });
+				entity.HasOne(s => s.Vendor)
+					  .WithMany(v => v.Sales)
+					  .HasForeignKey(s => s.VendorId);
 
-        modelBuilder.Entity<OrderStatusRef>(entity =>
-        {
-            entity.HasKey(e => e.Status).HasName("PK__ORDER_ST__A858923DDCDCC7A2");
+				entity.HasOne(s => s.StatusNavigation)
+					  .WithMany(o => o.Sales)
+					  .HasForeignKey(s => s.Status)
+					  .HasPrincipalKey(o => o.Status);
+			});
 
-            entity.ToTable("ORDER_STATUS_REF");
+			// ======================
+			// PAYMENT
+			// ======================
+			modelBuilder.Entity<Payment>(entity =>
+			{
+				entity.HasKey(e => e.PaymentId);
+				entity.ToTable("PAYMENTS");
 
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("status");
-        });
+				entity.Property(e => e.PaymentId).HasColumnName("payment_id");
+				entity.Property(e => e.SaleId).HasColumnName("sale_id");
+				entity.Property(e => e.ProcessorName).HasColumnName("processor_name");
+				entity.Property(e => e.AuthorizationRequestId).HasColumnName("authorization_request_id");
+				entity.Property(e => e.AuthorizationCode).HasColumnName("authorization_code");
+				entity.Property(e => e.Amount).HasColumnName("amount").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.Currency).HasColumnName("currency");
+				entity.Property(e => e.RequestedAt).HasColumnName("requested_at");
+				entity.Property(e => e.RespondedAt).HasColumnName("responded_at");
+				entity.Property(e => e.PaymentStatus).HasColumnName("payment_status");
 
-        modelBuilder.Entity<Payment>(entity =>
-        {
-            entity.HasKey(e => e.PaymentId).HasName("PK__PAYMENTS__ED1FC9EAFEEEFCB6");
+				entity.HasOne(p => p.Sale)
+					  .WithOne(s => s.Payment)
+					  .HasForeignKey<Payment>(p => p.SaleId);
+			});
 
-            entity.ToTable("PAYMENTS");
+			// ======================
+			// PRODUCTS HISTORY
+			// ======================
+			modelBuilder.Entity<ProductsHistory>(entity =>
+			{
+				entity.HasKey(e => e.HistoryId);
+				entity.ToTable("PRODUCTS_HISTORY");
 
-            entity.HasIndex(e => e.SaleId, "UQ__PAYMENTS__E1EB00B391643BF2").IsUnique();
+				entity.Property(e => e.HistoryId).HasColumnName("history_id");
+				entity.Property(e => e.ProductId).HasColumnName("product_id");
+				entity.Property(e => e.Name).HasColumnName("name");
+				entity.Property(e => e.UnitPrice).HasColumnName("unit_price").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.InventoryQty).HasColumnName("inventory_qty");
+				entity.Property(e => e.AuditAction).HasColumnName("audit_action");
+				entity.Property(e => e.AuditDate).HasColumnName("audit_date");
+			});
 
-            entity.Property(e => e.PaymentId).HasColumnName("payment_id");
-            entity.Property(e => e.Amount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("amount");
-            entity.Property(e => e.AuthorizationCode)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("authorization_code");
-            entity.Property(e => e.AuthorizationRequestId)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("authorization_request_id");
-            entity.Property(e => e.Currency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("currency");
-            entity.Property(e => e.PaymentStatus)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("payment_status");
-            entity.Property(e => e.ProcessorName)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("processor_name");
-            entity.Property(e => e.RequestedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("requested_at");
-            entity.Property(e => e.RespondedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("responded_at");
-            entity.Property(e => e.SaleId).HasColumnName("sale_id");
+			// ======================
+			// SALES HISTORY
+			// ======================
+			modelBuilder.Entity<SalesHistory>(entity =>
+			{
+				entity.HasKey(e => e.HistoryId);
+				entity.ToTable("SALES_HISTORY");
 
-            entity.HasOne(d => d.Sale).WithOne(p => p.Payment)
-                .HasForeignKey<Payment>(d => d.SaleId)
-                .HasConstraintName("FK__PAYMENTS__sale_i__4AB81AF0");
-        });
+				entity.Property(e => e.HistoryId).HasColumnName("history_id");
+				entity.Property(e => e.SaleId).HasColumnName("sale_id");
+				entity.Property(e => e.TotalAmount).HasColumnName("total_amount").HasColumnType("decimal(10,2)");
+				entity.Property(e => e.Status).HasColumnName("status");
+				entity.Property(e => e.AuditAction).HasColumnName("audit_action");
+				entity.Property(e => e.AuditDate).HasColumnName("audit_date");
+			});
 
-        modelBuilder.Entity<Product>(entity =>
-        {
-            entity.HasKey(e => e.ProductId).HasName("PK__PRODUCTS__47027DF590902F38");
+			// ======================
+			// CUSTOMERS HISTORY
+			// ======================
+			modelBuilder.Entity<CustomersHistory>(entity =>
+			{
+				entity.HasKey(e => e.HistoryId);
+				entity.ToTable("CUSTOMERS_HISTORY");
 
-            entity.ToTable("PRODUCTS", tb => tb.HasTrigger("trg_products_history"));
+				entity.Property(e => e.HistoryId).HasColumnName("history_id");
+				entity.Property(e => e.CustomerId).HasColumnName("customer_id");
+				entity.Property(e => e.FirstName).HasColumnName("first_name");
+				entity.Property(e => e.LastName).HasColumnName("last_name");
+				entity.Property(e => e.Email).HasColumnName("email");
+				entity.Property(e => e.Phone).HasColumnName("phone");
+				entity.Property(e => e.AuditAction).HasColumnName("audit_action");
+				entity.Property(e => e.AuditDate).HasColumnName("audit_date");
+			});
 
-            entity.HasIndex(e => e.Sku, "UQ__PRODUCTS__DDDF4BE72A645DBC").IsUnique();
+			// ======================
+			// REVENUE REPORT
+			// ======================
+			modelBuilder.Entity<RevenueReport>(entity =>
+			{
+				entity.HasKey(e => e.ReportId);
+				entity.ToTable("REVENUE_REPORTS");
 
-            entity.Property(e => e.ProductId).HasColumnName("product_id");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Currency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("currency");
-            entity.Property(e => e.Description)
-                .HasMaxLength(500)
-                .IsUnicode(false)
-                .HasColumnName("description");
-            entity.Property(e => e.InventoryQty).HasColumnName("inventory_qty");
-            entity.Property(e => e.IsActive).HasColumnName("is_active");
-            entity.Property(e => e.Name)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("name");
-            entity.Property(e => e.Sku)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("sku");
-            entity.Property(e => e.UnitPrice)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("unit_price");
-            entity.Property(e => e.VendorId).HasColumnName("vendor_id");
+				entity.Property(e => e.ReportId).HasColumnName("report_id");
+				entity.Property(e => e.ReportDate).HasColumnName("report_date");
+				entity.Property(e => e.GeneratedAt).HasColumnName("generated_at");
+				entity.Property(e => e.TotalSalesCount).HasColumnName("total_sales_count");
+				entity.Property(e => e.GrossRevenueAmount)
+					  .HasColumnName("gross_revenue_amount")
+					  .HasColumnType("decimal(12,2)");
+				entity.Property(e => e.Currency)
+					  .HasColumnName("currency")
+					  .HasMaxLength(10)
+					  .IsUnicode(false);
+			});
 
-            entity.HasOne(d => d.Vendor).WithMany(p => p.Products)
-                .HasForeignKey(d => d.VendorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PRODUCTS__vendor__412EB0B6");
-        });
+			// ======================
+			// ORDER STATUS REF
+			// ======================
+			modelBuilder.Entity<OrderStatusRef>(entity =>
+			{
+				entity.HasKey(e => e.Status);
+				entity.ToTable("ORDER_STATUS_REF");
 
-        modelBuilder.Entity<ProductsHistory>(entity =>
-        {
-            entity.HasKey(e => e.HistoryId).HasName("PK__PRODUCTS__096AA2E956B07CE0");
-
-            entity.ToTable("PRODUCTS_HISTORY");
-
-            entity.Property(e => e.HistoryId).HasColumnName("history_id");
-            entity.Property(e => e.AuditAction)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("audit_action");
-            entity.Property(e => e.AuditDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("audit_date");
-            entity.Property(e => e.InventoryQty).HasColumnName("inventory_qty");
-            entity.Property(e => e.Name)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("name");
-            entity.Property(e => e.ProductId).HasColumnName("product_id");
-            entity.Property(e => e.UnitPrice)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("unit_price");
-        });
-
-        modelBuilder.Entity<RevenueReport>(entity =>
-        {
-            entity.HasKey(e => e.ReportId).HasName("PK__REVENUE___779B7C584E6AC71A");
-
-            entity.ToTable("REVENUE_REPORTS");
-
-            entity.Property(e => e.ReportId).HasColumnName("report_id");
-            entity.Property(e => e.Currency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("currency");
-            entity.Property(e => e.GeneratedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("generated_at");
-            entity.Property(e => e.GrossRevenueAmount)
-                .HasColumnType("decimal(12, 2)")
-                .HasColumnName("gross_revenue_amount");
-            entity.Property(e => e.ReportDate).HasColumnName("report_date");
-            entity.Property(e => e.TotalSalesCount).HasColumnName("total_sales_count");
-
-            entity.HasMany(d => d.Sales).WithMany(p => p.Reports)
-                .UsingEntity<Dictionary<string, object>>(
-                    "RevenueReportSale",
-                    r => r.HasOne<Sale>().WithMany()
-                        .HasForeignKey("SaleId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__REVENUE_R__sale___5070F446"),
-                    l => l.HasOne<RevenueReport>().WithMany()
-                        .HasForeignKey("ReportId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__REVENUE_R__repor__4F7CD00D"),
-                    j =>
-                    {
-                        j.HasKey("ReportId", "SaleId").HasName("PK__REVENUE___4985CC539B44C1C2");
-                        j.ToTable("REVENUE_REPORT_SALES");
-                        j.IndexerProperty<int>("ReportId").HasColumnName("report_id");
-                        j.IndexerProperty<int>("SaleId").HasColumnName("sale_id");
-                    });
-        });
-
-        modelBuilder.Entity<Sale>(entity =>
-        {
-            entity.HasKey(e => e.SaleId).HasName("PK__SALES__E1EB00B2D99DC8BE");
-
-            entity.ToTable("SALES", tb => tb.HasTrigger("trg_sales_history"));
-
-            entity.Property(e => e.SaleId).HasColumnName("sale_id");
-            entity.Property(e => e.Currency)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("currency");
-            entity.Property(e => e.CustomerId).HasColumnName("customer_id");
-            entity.Property(e => e.ProductId).HasColumnName("product_id");
-            entity.Property(e => e.PurchasedAt)
-                .HasColumnType("datetime")
-                .HasColumnName("purchased_at");
-            entity.Property(e => e.Quantity).HasColumnName("quantity");
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("status");
-            entity.Property(e => e.SubtotalAmount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("subtotal_amount");
-            entity.Property(e => e.TaxAmount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("tax_amount");
-            entity.Property(e => e.TotalAmount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("total_amount");
-            entity.Property(e => e.UnitPriceAtSale)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("unit_price_at_sale");
-            entity.Property(e => e.VendorId).HasColumnName("vendor_id");
-
-            entity.HasOne(d => d.Customer).WithMany(p => p.Sales)
-                .HasForeignKey(d => d.CustomerId)
-                .HasConstraintName("FK__SALES__customer___440B1D61");
-
-            entity.HasOne(d => d.StatusNavigation).WithMany(p => p.Sales)
-                .HasForeignKey(d => d.Status)
-                .HasConstraintName("FK__SALES__status__46E78A0C");
-
-            entity.HasOne(d => d.Vendor).WithMany(p => p.Sales)
-                .HasForeignKey(d => d.VendorId)
-                .HasConstraintName("FK__SALES__vendor_id__45F365D3");
-        });
-
-        modelBuilder.Entity<SalesHistory>(entity =>
-        {
-            entity.HasKey(e => e.HistoryId).HasName("PK__SALES_HI__096AA2E9D68AFEF6");
-
-            entity.ToTable("SALES_HISTORY");
-
-            entity.Property(e => e.HistoryId).HasColumnName("history_id");
-            entity.Property(e => e.AuditAction)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("audit_action");
-            entity.Property(e => e.AuditDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("audit_date");
-            entity.Property(e => e.SaleId).HasColumnName("sale_id");
-            entity.Property(e => e.Status)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("status");
-            entity.Property(e => e.TotalAmount)
-                .HasColumnType("decimal(10, 2)")
-                .HasColumnName("total_amount");
-        });
-
-        modelBuilder.Entity<Vendor>(entity =>
-        {
-            entity.HasKey(e => e.VendorId).HasName("PK__VENDORS__0F7D2B78C9A201EC");
-
-            entity.ToTable("VENDORS");
-
-            entity.Property(e => e.VendorId).HasColumnName("vendor_id");
-            entity.Property(e => e.ContactEmail)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("contact_email");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
-                .HasColumnName("created_at");
-            entity.Property(e => e.Name)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("name");
-            entity.Property(e => e.PayoutAccountRef)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("payout_account_ref");
-        });
-
-        OnModelCreatingPartial(modelBuilder);
-    }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+				entity.Property(e => e.Status).HasColumnName("status");
+			});
+		}
+	}
 }

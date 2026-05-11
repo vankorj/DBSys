@@ -1,32 +1,64 @@
 ﻿@page
 @model DBSys.Pages.TablesModel
+
 @{
     ViewData["Title"] = "SF Tables";
-    var properties = typeof(DBSys.Models.Product).GetProperties();
 }
 
-<div clss="">
-    <h1 class="display-4">State Fair Sales</h1>
-</div>
+<h1 class="display-4 mb-4">State Fair Sales</h1>
 
-<table class="table">
-    <thead>
-        <tr>
-            @foreach (var prop in properties)
-            {
-                <th>@prop.Name</th>
-            }
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Products)
-        {
-            <tr>
-                @foreach (var prop in properties)
-                {
-                <td>@prop.GetValue(item)</td>
-                }
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- PRODUCTS -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white">Products</div>
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable" model="Model.Products.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- VENDORS -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white">Vendors</div>
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable" model="Model.Vendors.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOMERS -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white">Customers</div>
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable" model="Model.Customers.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- PAYMENTS -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white">Payments</div>
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable" model="Model.Payments.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- SALES -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header text-white">Sales</div>
+                <div class="card-body table-container">
+                    <partial name="_DynamicTable" model="Model.Sales.Cast<object>()" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

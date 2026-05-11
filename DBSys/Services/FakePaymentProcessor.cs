@@ -1,21 +1,25 @@
-﻿using DBSys.Models;
+﻿using System;
 
 namespace DBSys.Services;
 
 public class FakePaymentProcessor
 {
-	public PaymentResult Process(Payment payment)
+	public (string status, string? authCode) Process(decimal amount)
 	{
 		var rand = new Random();
 
-		// Example rule-based logic (more realistic than pure random)
-		bool approved = payment.Amount < 50 || rand.Next(0, 100) < 70;
-
-		return new PaymentResult
+		bool approved = amount switch
 		{
-			IsApproved = approved,
-			AuthorizationCode = approved ? $"AUTH-{rand.Next(10000, 99999)}" : null,
-			Message = approved ? "Approved" : "Declined"
+			< 20 => true,
+			< 100 => rand.Next(0, 100) < 80,
+			_ => rand.Next(0, 100) < 50
 		};
+
+		if (approved)
+		{
+			return ("Approved", $"AUTH-{rand.Next(10000, 99999)}");
+		}
+
+		return ("Declined", null);
 	}
 }
